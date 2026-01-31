@@ -1,0 +1,56 @@
+name: Deploy Infrastructure
+run-name: ${{ github.actor }} is deploying infrastructure 🚀
+on:
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    name: Deploy Terraform
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          ref: 'main'
+
+      - name: Configure AWS Credentials using OIDC
+        uses: aws-actions/configure-aws-credentials@v5.1.1
+        with:
+          role-to-assume: ${{ vars.OIDC_ROLE }}
+          aws-region: eu-central-1
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "~1.13"
+          terraform_wrapper: false
+
+      - name: Terraform Init
+        working-directory: ./terraform/environments/prod
+        run: terraform init
+
+      - name: Terraform Plan
+        working-directory: ./terraform/environments/prod
+        run: |
+          terraform plan \
+            -var="prefix=${{ vars.PREFIX || 'portfolio' }}" \
+            -var="environment=prod" \
+            -var="region=${{ vars.AWS_REGION }}" \
+            -var="domain_alias=${{ vars.DOMAIN_ALIAS }}" \
+            -var="acm_certificate_arn=${{ vars.ACM_CERTIFICATE_ARN }}" \
+            -out=tfplan
+
+      - name: Terraform Apply
+        working-directory: ./terraform/environments/prod
+        run: terraform apply -auto-approve tfplan
+
+      - name: Output CloudFront Distribution ID
+        working-directory: ./terraform/environments/prod
+        run: |
+          echo "CloudFront Distribution ID: $(terraform output -raw cloudfront_distribution_id)"
+          echo "CloudFront Domain: $(terraform output -raw cloudfront_distribution_domain_name)"
