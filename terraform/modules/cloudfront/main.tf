@@ -15,6 +15,13 @@ module "cdn" {
   wait_for_deployment = false
   default_root_object = var.default_root_object
 
+  # CloudFront Access Logging
+  logging_config = var.enable_logging ? {
+    bucket          = var.logging_bucket
+    prefix          = var.logging_prefix
+    include_cookies = false
+  } : null
+
   # Origin Access Control for S3
   origin_access_control = {
     s3_oac = {

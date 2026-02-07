@@ -8,6 +8,19 @@ data "aws_s3_bucket" "website" {
 }
 
 # ============================================================================
+# S3 Logging Bucket for CloudFront
+# ============================================================================
+
+module "s3" {
+  source = "../../modules/s3"
+
+  prefix      = var.prefix
+  environment = var.environment
+
+  cdn_s3_logging_bucket_name = "${var.prefix}-cloudfront-logs-${var.environment}"
+}
+
+# ============================================================================
 # CloudFront Distribution
 # ============================================================================
 
@@ -32,6 +45,11 @@ module "cloudfront" {
   price_class         = "PriceClass_100"
   enabled             = true
   is_ipv6_enabled     = true
+
+  # CloudFront Access Logging
+  enable_logging = true
+  logging_bucket = module.s3.cdn_s3_logging_bucket_domain_name
+  logging_prefix = "cloudfront/"
 
   # Custom error responses for SPA routing
   custom_error_responses = [

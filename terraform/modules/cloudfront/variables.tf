@@ -82,3 +82,21 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
+
+variable "logging_bucket" {
+  description = "The S3 bucket for CloudFront access logs (bucket.s3.amazonaws.com format)"
+  type        = string
+  default     = ""
+}
+
+variable "logging_prefix" {
+  description = "Prefix for CloudFront access logs in the S3 bucket"
+  type        = string
+  default     = "cloudfront/"
+}
+
+variable "enable_logging" {
+  description = "Whether to enable CloudFront access logging"
+  type        = bool
+  default     = false
+}
