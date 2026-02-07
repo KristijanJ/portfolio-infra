@@ -43,7 +43,4 @@ module "cdn_s3_logging_bucket" {
   # Enable bucket ownership controls (required for CloudFront logging)
   control_object_ownership = true
   object_ownership         = "BucketOwnerPreferred"
-
-  # ACL for CloudFront logging
-  acl = "log-delivery-write"
 }
